@@ -57,7 +57,7 @@ nb_cores=`cat /proc/cpuinfo  | grep -i "cpu cores" | head -1 | cut -d":" -f2 | s
 
 #ESPACE DISQUE
 #disk=`df -h`
-disk=`fdisk -l | grep "Disk" | cut -d" " -f3 | cut -d"." -f1 | head -1`
+disk=`fdisk -l | grep "^Dis" | cut -d" " -f3 | cut -d"." -f1 | head -1`
 
 
 
