@@ -37,7 +37,7 @@ checkrequirements () {
 checkrequirements
 
 # Detect if laptop or not
-type=`dmidecode -t 22 | grep Handle`
+type=`sudo dmidecode -t 22 | grep Handle`
 if [ -n "$type" ]
 then
 echo "This computer is a Laptop"
@@ -85,7 +85,7 @@ then
 	memory="9 Gigas"
 fi
 #Type Memoire
-type_memory=`dmidecode  | grep DDR | cut -d":" -f2 | sed 's/ //g' | head -1`
+type_memory=`sudo dmidecode  | grep DDR | cut -d":" -f2 | sed 's/ //g' | head -1`
 
 #PROC
 proc=`cat /proc/cpuinfo | grep -i "model name" | cut -d":" -f2 | head -1`
