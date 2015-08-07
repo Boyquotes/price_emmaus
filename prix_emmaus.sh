@@ -6,11 +6,50 @@ desc=$2
 img="prix.png"
 img_display="prix_display.png"
 
+#Requirements
+_needed_commands="mogrify" ;
+
+checkrequirements () {
+        command -v command >/dev/null 2>&1 || {
+                echo "WARNING> \"command\" not found. Check requirements skipped !"
+                return 1 ;
+        }
+        for requirement in ${_needed_commands} ; do
+                echo -n "checking for \"$requirement\" ... " ;
+                command -v ${requirement} > /dev/null && {
+                        echo "ok" ;
+                        continue ;
+                } || {
+                        echo "required but not found !" ;
+			if [ ${requirement} == "mogrify" ]
+			then
+			    echo "Please install imagemagick packgage"
+			fi
+                        _return=1 ;
+                }
+                done
+        [ -z "${_return}" ] || { 
+                echo "ERR > Requirement missing." >&2 ; 
+                exit 1 ;
+        }
+}
+
+checkrequirements
+
+# Detect if laptop or not
+type=`dmidecode -t 22 | grep Handle`
+if [ -n "$type" ]
+then
+echo "This computer is a Laptop"
+img="prix_laptop.png"
+fi
+
+#Prepare the img result
 cp $img $img_display
 
-#MEM
+#Detect MEM
 mem=`free -m | awk {'print $2'} | head -n 2| tail -1 | cut -d'M' -f1 | cut -d'G' -f1`
-#echo $mem
+
 if [ "$mem" -lt "600" ]
 then
 	memory="512Mo"
@@ -41,9 +80,9 @@ then
 elif [ "$mem" -lt "8000" ]
 then
 	memory="8 Gigas"
-elif [ "$mem" -lt "8000" ]
+elif [ "$mem" -lt "9000" ]
 then
-	memory="8 Gigas"
+	memory="9 Gigas"
 fi
 #Type Memoire
 type_memory=`dmidecode  | grep DDR | cut -d":" -f2 | sed 's/ //g' | head -1`
