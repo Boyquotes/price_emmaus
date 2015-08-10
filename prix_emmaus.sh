@@ -4,55 +4,23 @@
 price=$1
 desc=$2
 img="prix.png"
+img_portabe="prix_portable.png"
 img_display="prix_display.png"
 
-#Requirements
-_needed_commands="mogrify" ;
 
-checkrequirements () {
-        command -v command >/dev/null 2>&1 || {
-                echo "WARNING> \"command\" not found. Check requirements skipped !"
-                return 1 ;
-        }
-        for requirement in ${_needed_commands} ; do
-                echo -n "checking for \"$requirement\" ... " ;
-                command -v ${requirement} > /dev/null && {
-                        echo "ok" ;
-                        continue ;
-                } || {
-                        echo "required but not found !" ;
-			if [ ${requirement} == "mogrify" ]
-			then
-			    echo "Please install imagemagick packgage"
-			fi
-                        _return=1 ;
-                }
-                done
-        [ -z "${_return}" ] || { 
-                echo "ERR > Requirement missing." >&2 ; 
-                exit 1 ;
-        }
-}
-
-checkrequirements
-
-# Detect if laptop or not
-type=`sudo dmidecode -t 22 | grep Handle`
-if [ -n "$type" ]
+if [[ $desc == *Tour* ]] 
 then
-echo "This computer is a Laptop"
-img="prix_laptop.png"
+	cp "assets/"$img "assets/"$img_display
+else
+	cp "assets/"$img_portabe "assets/"$img_display
 fi
 
-#Prepare the img result
-cp $img $img_display
-
-#Detect MEM
+#MEM
 mem=`free -m | awk {'print $2'} | head -n 2| tail -1 | cut -d'M' -f1 | cut -d'G' -f1`
-
+#echo $mem
 if [ "$mem" -lt "600" ]
 then
-	memory="512Mo"
+	memory="512 Mo"
 elif [ "$mem" -lt "1000" ]
 then
 	memory="1 Giga"
@@ -80,12 +48,12 @@ then
 elif [ "$mem" -lt "8000" ]
 then
 	memory="8 Gigas"
-elif [ "$mem" -lt "9000" ]
+elif [ "$mem" -gt "8000" ]
 then
-	memory="9 Gigas"
+	memory="+8 Gigas"
 fi
 #Type Memoire
-type_memory=`sudo dmidecode  | grep DDR | cut -d":" -f2 | sed 's/ //g' | head -1`
+type_memory=`dmidecode  | grep DDR | cut -d":" -f2 | sed 's/ //g' | head -1`
 
 #PROC
 proc=`cat /proc/cpuinfo | grep -i "model name" | cut -d":" -f2 | head -1`
@@ -96,7 +64,7 @@ nb_cores=`cat /proc/cpuinfo  | grep -i "cpu cores" | head -1 | cut -d":" -f2 | s
 
 #ESPACE DISQUE
 #disk=`df -h`
-disk=`fdisk -l | grep "^Dis" | cut -d" " -f3 | cut -d"." -f1 | head -1`
+disk=`fdisk -l | grep "Disk" | cut -d" " -f3 | cut -d"." -f1 | head -1`
 
 
 
@@ -108,9 +76,22 @@ echo "Prix :" $price"€" >> /tmp/prix_emmaus.html
 
 cat /tmp/prix_emmaus.html
 
-mogrify -fill black -pointsize 26 -annotate +65+59 "$desc $price €" $img_display
-mogrify -fill black -pointsize 16 -annotate +65+89 "CPU : $model_cpu" $img_display
-mogrify -fill black -pointsize 16 -annotate +65+119 "Mémoire : $memory" $img_display
-mogrify -fill black -pointsize 16 -annotate +65+149 "Disque dur : $disk Gigas" $img_display
 
-display $img_display
+
+mogrify -fill black -pointsize 36 -annotate +65+59 "$desc $price €" "assets/"$img_display
+mogrify -fill black -pointsize 26 -annotate +65+89 "CPU : $model_cpu" "assets/"$img_display
+mogrify -fill black -pointsize 26 -annotate +65+119 "Mémoire : $memory" "assets/"$img_display
+mogrify -fill black -pointsize 26 -annotate +65+149 "Disque dur : $disk Gigas" "assets/"$img_display
+
+#display $img_display
+
+#First get the display width and height as shell variables.
+eval `xrdb -symbols -screen |  sed -n '/^-D\(WIDTH\|HEIGHT\)/{s/-D/X_/gp;}'`
+
+let "X_WIDTH = ${X_WIDTH}*8/10"
+let "X_HEIGHT = ${X_HEIGHT}*8/10"
+mogrify -resize ${X_WIDTH}x${X_HEIGHT} "assets/"$img_display
+
+#display -quiet -geometry ${X_WIDTH}x${X_HEIGHT} $img_display &
+display -quiet "assets/"$img_display &
+

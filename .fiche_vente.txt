@@ -1,0 +1,3 @@
+#Fiche de description de la machine, et de son prix de vente
+description="Tour + Clavier/Souris"
+prix_vente=80
